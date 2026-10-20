@@ -1,53 +1,35 @@
 import * as THREE from 'three';
-import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 const host=document.getElementById('stage');
 if(host){
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setClearColor(0,0);host.appendChild(renderer.domElement);renderer.domElement.style.cssText='width:100%;height:100%;display:block';
-const scene=new THREE.Scene();const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.35;
-const cam=new THREE.PerspectiveCamera(36,1,.1,100);cam.position.set(0,.6,9);
-{const pl=new THREE.PointLight(0xff1a28,60,20);pl.position.set(-3,3,4);scene.add(pl);}const k=new THREE.DirectionalLight(0xffffff,1.1);k.position.set(3,5,6);scene.add(k);
-const dark=new THREE.MeshStandardMaterial({color:0x0b0b0e,metalness:.92,roughness:.28});
-const red=new THREE.MeshBasicMaterial({color:0xff2230});const glass=new THREE.MeshPhysicalMaterial({color:0x141418,metalness:.6,roughness:.12,transparent:true,opacity:.75,clearcoat:1});
-const edge=c=>new THREE.LineBasicMaterial({color:c||0xff3040});
-const G=[0,1,2,3,4].map(()=>{const g=new THREE.Group();g.visible=false;scene.add(g);return g});
-function boxE(w,h,d,mat,parent,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),edge()));parent.add(m);return m}
-// 0 WEB — exploded browser windows assembling, cursor clicking
-const wins=[];for(let i=0;i<3;i++){const w=new THREE.Group();const base=boxE(4.2,2.7,.06,glass,w,0,0,0);
-  const bar=boxE(4.2,.28,.07,dark,w,0,1.21,.01);for(let d=0;d<3;d++){const dot=new THREE.Mesh(new THREE.CircleGeometry(.04,12),red);dot.position.set(-1.9+d*.14,1.21,.06);w.add(dot)}
-  for(let b=0;b<4;b++)boxE(1.8-b*.15,.12,.02,b?dark:new THREE.MeshBasicMaterial({color:0xd7000f}),w,-.9+(b?0:0),.65-b*.28,.05);
-  boxE(1.4,1.2,.03,dark,w,1.2,-.2,.05);G[0].add(w);wins.push(w)}
-const cur=new THREE.Mesh(new THREE.ConeGeometry(.12,.3,3),new THREE.MeshBasicMaterial({color:0xffffff}));cur.rotation.z=.5;G[0].add(cur);
-// 1 APP — phone with scrolling interface
-const cv=document.createElement('canvas');cv.width=256;cv.height=512;const cx=cv.getContext('2d');const ctex=new THREE.CanvasTexture(cv);ctex.colorSpace=THREE.SRGBColorSpace;
-const phone=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(1.7,3.5,.16),dark);phone.add(body);body.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),edge()));
-const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.5,3.3),new THREE.MeshBasicMaterial({map:ctex}));scr.position.z=.085;phone.add(scr);G[1].add(phone);
-function paintPhone(t){cx.fillStyle='#070709';cx.fillRect(0,0,256,512);const o=(t*40)%110;for(let i=-1;i<6;i++){const y=i*110-o+30;cx.fillStyle=i%2?'#1a1a20':'#2a0a0e';cx.beginPath();cx.roundRect(14,y,228,92,14);cx.fill();cx.fillStyle='#D7000F';cx.fillRect(26,y+16,60,10);cx.fillStyle='#4a4a54';cx.fillRect(26,y+38,150,8);cx.fillRect(26,y+54,110,8)}cx.fillStyle='#070709';cx.fillRect(0,0,256,26);cx.fillStyle='#fff';cx.fillRect(100,8,56,6);ctex.needsUpdate=true}
-// 2 HOST — server blades, blinking LEDs, cloud lattice
-const blades=[];for(let i=0;i<8;i++){const b=boxE(3,.34,1.8,dark,G[2],0,-1.8+i*.42,0);const led=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,.02),new THREE.MeshBasicMaterial({color:0xff2230}));led.position.set(1.3,0,.91);b.add(led);const bar=new THREE.Mesh(new THREE.BoxGeometry(1.4,.05,.02),new THREE.MeshBasicMaterial({color:0x33333a}));bar.position.set(-.3,0,.91);b.add(bar);blades.push(led)}
-const cloud=new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(1.1,2)),new THREE.LineBasicMaterial({color:0xff3040,transparent:true,opacity:.7}));cloud.scale.set(1.5,.85,1);cloud.position.y=2.4;G[2].add(cloud);
-const rain=[];const rg=new THREE.BufferGeometry();const rp=new Float32Array(160*3);for(let i=0;i<160;i++){rp[i*3]=(Math.random()-.5)*2.4;rp[i*3+1]=Math.random()*2;rp[i*3+2]=(Math.random()-.5)*1.2}rg.setAttribute('position',new THREE.BufferAttribute(rp,3));const rain_=new THREE.Points(rg,new THREE.PointsMaterial({color:0xff4a55,size:.05,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));G[2].add(rain_);
-// 3 AI — neural network with travelling pulses
-const layers=[4,6,6,3];const nodes=[];layers.forEach((n,L)=>{for(let i=0;i<n;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),new THREE.MeshStandardMaterial({color:0x111114,emissive:0xff1a28,emissiveIntensity:.6,metalness:.8,roughness:.2}));m.position.set(-3+L*2,(i-(n-1)/2)*.62,(Math.sin(i*2+L)*.4));G[3].add(m);nodes.push({m,L})}});
-const edges=[];const eg=[];nodes.forEach(a=>nodes.forEach(b=>{if(b.L===a.L+1)edges.push([a,b])}));
-const lp=[];edges.forEach(([a,b])=>lp.push(a.m.position.x,a.m.position.y,a.m.position.z,b.m.position.x,b.m.position.y,b.m.position.z));const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));G[3].add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0x6a1018,transparent:true,opacity:.7})));
-const pulses=[];for(let i=0;i<26;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),red);G[3].add(m);pulses.push({m,e:edges[(Math.random()*edges.length)|0],t:Math.random()})}
-// 4 LOYALTY — loop ring with orbiting coins
-const ringL=new THREE.Mesh(new THREE.TorusGeometry(1.9,.07,16,160),red);G[4].add(ringL);const ring2=new THREE.Mesh(new THREE.TorusGeometry(1.3,.04,16,120),new THREE.MeshBasicMaterial({color:0x8a0a14}));G[4].add(ring2);
-const coins=[];for(let i=0;i<8;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.07,36),new THREE.MeshStandardMaterial({color:0x15151a,metalness:1,roughness:.2,emissive:0x3a0006}));c.rotation.x=Math.PI/2;G[4].add(c);coins.push(c)}
-const hub=new THREE.Mesh(new THREE.IcosahedronGeometry(.55,1),new THREE.MeshStandardMaterial({color:0x0c0c0f,metalness:1,roughness:.18,emissive:0x4a0008,wireframe:false}));G[4].add(hub);hub.add(new THREE.LineSegments(new THREE.EdgesGeometry(hub.geometry),edge()));
-let idx=0,mx=0,my=0;window.svcPick=i=>{idx=i;G.forEach((g,j)=>g.visible=j===i)};svcPick(0);
+const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera(34,1,.1,50);cam.position.set(0,0,9);
+const TL=new THREE.TextureLoader();const U={t:{value:0}};
+const files=['o-web','o-app','o-host','o-ai','o-loyalty'];
+const items=files.map((f,i)=>{
+  const t=TL.load('img/'+f+'.webp');t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;
+  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{map:{value:t},t:U.t,op:{value:i?0:1},ph:{value:i*.37}},
+   vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+   fragmentShader:`precision highp float;varying vec2 v;uniform sampler2D map;uniform float t,op,ph;
+    void main(){vec4 c=texture2D(map,v);if(c.a<.01)discard;float lum=dot(c.rgb,vec3(.3,.5,.2));
+     float d=v.x*.75+(1.-v.y)*.45;float s=fract(t*.18+ph);float w=abs(d*.62-(s*1.9-.35));float sweep=smoothstep(.1,.0,w);
+     c.rgb+=vec3(1.,.5,.45)*sweep*(.2+lum*1.5);gl_FragColor=vec4(c.rgb*c.a*op,c.a*op);}`});
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),mat);const img=new Image();img.onload=()=>{const h=5.2,w=h*img.width/img.height,s=Math.min(1,6.4/w);m.scale.set(w*s,h*s,1)};img.src='img/'+f+'.webp';scene.add(m);return {m,mat}});
+// halo + orbiting sparks behind
+const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');const r=g.createRadialGradient(128,128,0,128,128,128);r.addColorStop(0,'rgba(255,40,50,.8)');r.addColorStop(.5,'rgba(215,0,15,.22)');r.addColorStop(1,'rgba(215,0,15,0)');g.fillStyle=r;g.fillRect(0,0,256,256);
+const halo=new THREE.Mesh(new THREE.PlaneGeometry(9,9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));halo.position.z=-1;scene.add(halo);
+const N=120,pa=new Float32Array(N*3),ph=new Float32Array(N);for(let i=0;i<N;i++){ph[i]=Math.random()*6.283}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pa,3));const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0xff5a64,size:.05,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));scene.add(pts);
+let idx=0,prev=0,tsw=1,mx=0,my=0;window.svcPick=i=>{if(i===idx)return;prev=idx;idx=i;tsw=0};
 host.addEventListener('pointermove',e=>{const r=host.getBoundingClientRect();mx=((e.clientX-r.left)/r.width)*2-1;my=((e.clientY-r.top)/r.height)*2-1});
 function size(){const w=host.clientWidth||600,h=host.clientHeight||440;renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
 size();addEventListener('resize',size);let vis=true;new IntersectionObserver(([e])=>vis=e.isIntersecting).observe(host);
-const t0=performance.now();
-function frame(now){requestAnimationFrame(frame);if(!vis)return;const t=(now-t0)/1000;
-  const g=G[idx];g.rotation.y+=((mx*.7+Math.sin(t*.3)*.25)-g.rotation.y)*.05;g.rotation.x+=((my*.25)-g.rotation.x)*.05;
-  if(idx===0){const a=(Math.sin(t*.8)*.5+.5);wins.forEach((w,i)=>{w.position.set((i-1)*.7*a,(1-i)*.45*a*.6,(i-1)*1.3*a-i*.1);w.rotation.y=(i-1)*.18*a});
-    const c=(t*.6)%2;cur.position.set(-1.4+c*1.2,.5-c*.5,1.6);cur.scale.setScalar(c>1.6?.8:1)}
-  if(idx===1){paintPhone(t);phone.rotation.y=Math.sin(t*.6)*.35;phone.position.y=Math.sin(t)*.1}
-  if(idx===2){blades.forEach((l,i)=>l.material.color.setHex(Math.sin(t*3+i*1.7)>.1?0xff2230:0x3a0508));cloud.rotation.y=t*.3;const a=rain_.geometry.attributes.position;for(let i=0;i<160;i++){let y=a.array[i*3+1]-.025;if(y<0)y=2;a.array[i*3+1]=y+0}a.needsUpdate=true;rain_.position.y=.9}
-  if(idx===3){pulses.forEach(p=>{p.t+=.012;if(p.t>1){p.t=0;p.e=edges[(Math.random()*edges.length)|0]}const A=p.e[0].m.position,B=p.e[1].m.position;p.m.position.lerpVectors(A,B,p.t)});nodes.forEach((n,i)=>n.m.material.emissiveIntensity=.5+.5*Math.sin(t*2+i))}
-  if(idx===4){ringL.rotation.x=t*.5;ringL.rotation.y=t*.3;ring2.rotation.x=-t*.7;hub.rotation.y=t*.8;coins.forEach((c,i)=>{const a=t*.9+i/8*6.283;c.position.set(Math.cos(a)*1.9,Math.sin(a*1.3)*.6,Math.sin(a)*1.9);c.rotation.z=t*2+i})}
+const t0=performance.now();const e3=x=>1-Math.pow(1-x,3);
+function frame(now){requestAnimationFrame(frame);if(!vis)return;const t=(now-t0)/1000;U.t.value=t;tsw=Math.min(1,tsw+.025);const k=e3(tsw);
+  items.forEach((it,i)=>{const on=i===idx,was=i===prev&&tsw<1;const o=on?k:(was?1-k:0);it.mat.uniforms.op.value=o;it.m.visible=o>.01;
+    const base=on?1.12-.12*k:(was?1+.1*k:1);it.m.position.set(-mx*.25+(on?(1-k)*.9:(was?-k*.9:0)),Math.sin(t*.9)*.1+my*.12,0);it.m.rotation.set(my*.08,mx*.22+Math.sin(t*.4)*.08,0);it.m.userData.s=base});
+  items.forEach(it=>{if(it.m.userData.s&&it.m.scale.x){const sx=it.m.scale.x/(it.m.userData.ps||it.m.scale.x);}});
+  halo.scale.setScalar(1+Math.sin(t*1.5)*.05);
+  const a=pg.attributes.position;for(let i=0;i<N;i++){const an=ph[i]+t*(.25+(i%5)*.06),rr=2.6+(i%7)*.22;a.array[i*3]=Math.cos(an)*rr;a.array[i*3+1]=Math.sin(an*1.3+i)*1.8;a.array[i*3+2]=Math.sin(an)*1.2}a.needsUpdate=true;
   renderer.render(scene,cam)}
 requestAnimationFrame(frame);
 }
