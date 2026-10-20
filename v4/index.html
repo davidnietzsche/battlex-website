@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><script src="../lib/gate.js"></script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Battle X — Web &amp; Digital Engineering</title><meta name="robots" content="noindex">
+<link rel="icon" href="../brand/bx-mark.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030304;--red:#D7000F;--red2:#ef2b36;--line:rgba(255,255,255,.14);--mut:#8f8a8a;--f:'Inter',system-ui,sans-serif;--m:'JetBrains Mono',monospace;--d:'Oswald',sans-serif}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth;background:#030304}
+body{background:var(--bg);color:#f4f1f0;font:300 16px/1.6 var(--f);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.glass{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03));border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.pill{display:inline-flex;align-items:center;gap:14px;padding:9px 9px 9px 24px;border-radius:99px;font:400 14px var(--f);color:#fff;transition:.35s}
+.pill b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;color:#000;font-size:15px;transition:.35s}
+.pill:hover{box-shadow:0 0 40px -6px rgba(215,0,15,.7);border-color:rgba(215,0,15,.7)}.pill:hover b{background:var(--red);color:#fff}
+.pill.solid{background:var(--red);border-color:var(--red)}.pill.solid b{background:#000;color:#fff}
+.mono{font:500 11px var(--m);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+/* nav */
+nav{position:fixed;z-index:30;inset:16px 0 auto;display:flex;justify-content:center;pointer-events:none}
+nav .in{background:rgba(8,8,10,.72)!important;pointer-events:auto;display:flex;align-items:center;gap:34px;padding:8px 10px 8px 22px;border-radius:99px;transition:.3s}
+nav .logo{display:flex;align-items:center;gap:9px;font:700 17px var(--d);letter-spacing:.1em}nav .logo img{height:26px}
+nav .ls{display:flex;gap:26px;font-size:13.5px;color:#cfcaca}nav .ls a:hover{color:#fff}
+nav .pill{padding:5px 5px 5px 18px;font-size:13px}nav .pill b{width:28px;height:28px}
+@media(max-width:820px){nav .ls{display:none}}
+/* scenes */
+.scene{position:relative;min-height:100svh;overflow:hidden;isolation:isolate;display:grid}
+
+.scene:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+.x{position:absolute;inset:0;pointer-events:none;z-index:1}
+/* crosshair frame lines */
+.hl,.vl{position:absolute;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent)}
+.hl{height:1px;left:0;right:0}.vl{width:1px;top:0;bottom:0;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
+.dot{position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 14px 2px rgba(255,255,255,.6)}.dot.r{background:var(--red);box-shadow:0 0 16px 3px rgba(215,0,15,.9)}
+.cap{position:absolute;font-size:13px;color:#d9d3d3;max-width:200px;line-height:1.45}.cap b{display:block;font-weight:500;color:#fff;font-size:15px;margin-bottom:2px}
+h1,h2{font-weight:300;letter-spacing:-.035em;line-height:1}
+h2 .g{color:rgba(255,255,255,.38)}h2 em,h1 em{font-style:normal;color:var(--red2)}
+/* S1 hero */
+.s1{align-items:center}
+.s1:after{background:radial-gradient(60% 55% at 50% 52%,transparent,rgba(3,3,4,.65)),linear-gradient(0deg,#030304,transparent 20%)}
+#gl{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.ghost{position:absolute;left:50%;top:13%;translate:-50% 0;font:200 clamp(90px,19vw,310px)/1 var(--f);letter-spacing:-.06em;white-space:nowrap;color:transparent;background:linear-gradient(180deg,rgba(215,0,15,.55),rgba(215,0,15,.04) 88%);-webkit-background-clip:text;background-clip:text;z-index:-1;user-select:none}
+.s1 .copy{position:absolute;left:clamp(22px,5vw,80px);bottom:12%;max-width:330px;z-index:3}
+.s1 .copy p{font-size:14px;color:#cfc9c9;margin-bottom:22px}
+.s1 .stat{position:absolute;right:6%;top:15%;z-index:3;font:300 clamp(30px,3vw,46px)/1 var(--f);letter-spacing:-.02em}.stat small{font:300 12px var(--f);color:var(--mut);margin-left:8px;letter-spacing:0}
+.s1 .chip{position:absolute;right:23%;bottom:9%;z-index:3;display:flex;gap:10px;align-items:center;font-size:14px}
+.s1 .photo{position:absolute;right:clamp(20px,5vw,80px);bottom:8%;width:clamp(150px,17vw,250px);aspect-ratio:3/4;border-radius:6px;overflow:hidden;z-index:3;border:1px solid var(--line);box-shadow:0 30px 80px -20px rgba(215,0,15,.45)}
+.s1 .photo img{width:100%;height:100%;object-fit:cover}
+.s1 .photo:before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;border-left:2px solid var(--red);border-top:2px solid var(--red);z-index:2}
+.s1 .tag{position:absolute;left:clamp(22px,5vw,80px);top:20%;z-index:3}
+@media(max-width:900px){.s1 .stat,.s1 .chip,.s1 .photo{display:none}.s1 .copy{right:22px;bottom:9%}}
+/* S2 commerce */
+.s2{align-items:end}
+.s2:after{background:linear-gradient(180deg,#030304 0,rgba(3,3,4,.15) 28%,rgba(3,3,4,.1) 65%,#030304)}
+.s2 .t{position:absolute;left:50%;top:15%;translate:-50% 0;text-align:center;z-index:3;width:min(760px,88vw)}
+.s2 h2{font-size:clamp(32px,4.4vw,70px)}.s2 .t p{margin-top:18px;color:#cfc9c9;font-size:15px}
+.s2 .card{position:absolute;left:clamp(20px,6vw,100px);bottom:15%;width:200px;border-radius:14px;overflow:hidden;z-index:3}
+.s2 .card img{width:100%;height:120px;object-fit:cover}.s2 .card div{padding:14px 16px}.s2 .card b{font-weight:500;font-size:15px;display:block}.s2 .card span{font-size:12px;color:var(--mut)}
+.s2 .go{position:absolute;right:clamp(20px,9vw,150px);bottom:26%;z-index:3}
+/* S3 portrait */
+.s3{align-items:center}
+.s3:after{background:linear-gradient(180deg,#030304,transparent 20%,transparent 75%,#030304),linear-gradient(270deg,rgba(3,3,4,.55),transparent 50%)}
+.s3 .t{position:absolute;right:clamp(22px,7vw,120px);top:24%;z-index:3;max-width:640px}
+.s3 h2{font-size:clamp(44px,7vw,112px)}
+.s3 .t p{margin-top:26px;max-width:36ch;color:#d4cece;font-size:14.5px}
+.s3 .perf{position:absolute;left:clamp(20px,7vw,110px);bottom:20%;width:min(300px,70vw);padding:20px 22px;border-radius:26px;z-index:3}
+.s3 .perf .row{display:flex;align-items:center;gap:12px;font-size:14px}.s3 .perf .row i{width:22px;height:22px;border-radius:50%;background:#fff;display:block}
+.s3 svg{width:100%;height:84px;margin-top:10px;overflow:visible}.s3 path.ln{fill:none;stroke:var(--red2);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:420;stroke-dashoffset:420;transition:stroke-dashoffset 2.4s cubic-bezier(.3,.7,.2,1)}
+.s3.vis path.ln{stroke-dashoffset:0}
+.s3 .perf big{display:block;font:300 28px var(--f);letter-spacing:-.02em;text-align:right}.s3 .perf small{display:block;text-align:right;font-size:11px;color:var(--mut)}
+.s3 .go{position:absolute;right:clamp(22px,7vw,120px);bottom:14%;z-index:3}
+@media(max-width:800px){.s3 .t{top:14%;left:22px;right:22px}.s3 .perf{bottom:12%}.s3 .go{display:none}}
+/* S4 statement + services */
+.s4{align-content:center;padding:110px 0 90px}
+.s4:after{background:radial-gradient(50% 40% at 50% 100%,rgba(215,0,15,.35),transparent 70%)}
+.s4 .stmt{text-align:center;position:relative;z-index:3;margin-bottom:56px}
+.s4 h2{font-size:clamp(30px,4.6vw,74px);max-width:17ch;margin-inline:auto}
+.s4 .stmt p{margin:22px auto 0;max-width:46ch;color:#cfc9c9;font-size:15px}
+.svc{position:relative;z-index:3;width:min(1180px,calc(100% - 44px));margin-inline:auto;display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:stretch}
+.tabs{display:grid;gap:10px;align-content:center}
+.tab{display:flex;align-items:center;gap:14px;text-align:left;padding:15px 20px;border-radius:99px;color:#e8e3e3;font:400 14.5px var(--f);cursor:pointer;transition:.3s;border:1px solid var(--line);background:rgba(255,255,255,.05);backdrop-filter:blur(14px)}
+.tab:before{content:"";width:10px;height:10px;border-radius:50%;background:#fff;flex:none;transition:.3s}
+.tab.on,.tab:hover{border-color:rgba(215,0,15,.8);background:rgba(215,0,15,.18)}.tab.on:before{background:var(--red);box-shadow:0 0 14px var(--red)}
+.view{position:relative;min-height:440px;border-radius:26px;overflow:hidden}
+.view .pane{position:absolute;inset:0;display:grid;grid-template-columns:1.1fr 1fr;opacity:0;visibility:hidden;transition:opacity .6s}
+.view .pane.on{opacity:1;visibility:visible}
+.pane .im{position:relative;background-size:cover;background-position:center}.pane .im:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,rgba(3,3,4,.8))}
+.pane .tx{padding:38px 36px;display:flex;flex-direction:column;justify-content:center;background:rgba(5,5,7,.6)}
+.pane h3{font:500 30px/1.05 var(--d);text-transform:uppercase;letter-spacing:.02em;margin:10px 0 14px}
+.pane p{font-size:14.5px;color:#cfc9c9}.pane ul{list-style:none;padding:0;margin-top:20px;display:flex;flex-wrap:wrap;gap:7px}
+.pane li{font:500 10.5px var(--m);letter-spacing:.08em;text-transform:uppercase;padding:6px 11px;border-radius:99px;border:1px solid var(--line);color:#d8d2d2}
+@media(max-width:900px){.svc{grid-template-columns:1fr}.tabs{grid-template-columns:1fr 1fr}.view{min-height:560px}.view .pane{grid-template-columns:1fr;grid-template-rows:220px 1fr}.pane .im:after{background:linear-gradient(180deg,transparent 50%,rgba(3,3,4,.8))}}
+/* S5 architecture + metrics */
+.s5{align-content:center;padding:120px 0}
+
+.s5:after{background:linear-gradient(90deg,#030304 18%,rgba(3,3,4,.25) 70%,rgba(3,3,4,.7)),linear-gradient(180deg,#030304,transparent 15%,transparent 85%,#030304)}
+.s5 .wrap{width:min(1180px,calc(100% - 44px));margin-inline:auto;position:relative;z-index:3}
+.s5 h2{font-size:clamp(34px,5.4vw,84px);max-width:11ch}
+.lay{display:grid;gap:10px;margin-top:44px;max-width:560px}
+.lay div{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:14px;padding:16px 20px;border-radius:18px}
+.lay .n{font:500 12px var(--m);color:var(--red2);letter-spacing:.14em}.lay b{font-weight:500;display:block}.lay span{font-size:13px;color:#bdb6b6}
+.met{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}
+.met div{padding:18px 24px;border-radius:20px;min-width:150px}.met b{display:block;font:200 44px/1 var(--f);letter-spacing:-.03em}.met b sup{font-size:.4em;color:var(--red2)}.met span{font-size:12px;color:var(--mut)}
+.note{margin-top:14px;font:400 10.5px var(--m);letter-spacing:.08em;color:#6c6666;text-transform:uppercase;max-width:560px}
+/* S6 process */
+.s6{padding:120px 0;background:radial-gradient(60% 40% at 50% 0,rgba(215,0,15,.18),transparent 70%),#030304}
+.s6 .wrap{width:min(1180px,calc(100% - 44px));margin-inline:auto}
+.s6 h2{font-size:clamp(34px,5vw,78px);margin-bottom:50px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.st{padding:24px 20px;border-radius:22px;min-height:230px;display:flex;flex-direction:column;transition:.4s}
+.st:hover{transform:translateY(-6px);border-color:rgba(215,0,15,.7)}
+.st .n{font:500 11px var(--m);color:var(--red2);letter-spacing:.14em}.st h4{font:500 22px var(--d);text-transform:uppercase;margin:auto 0 8px;letter-spacing:.03em;padding-top:60px}.st p{font-size:13px;color:#bdb6b6}.st em{font:500 10.5px var(--m);color:var(--mut);font-style:normal;margin-top:12px;letter-spacing:.1em;text-transform:uppercase}
+@media(max-width:960px){.steps{grid-template-columns:1fr 1fr}}@media(max-width:560px){.steps{grid-template-columns:1fr}}
+/* CTA */
+.cta{align-content:center;text-align:center;min-height:90svh}
+.cta:after{background:linear-gradient(180deg,#030304,rgba(3,3,4,.1) 45%,rgba(3,3,4,.6))}
+.cta h2{font-size:clamp(36px,5.6vw,92px);position:relative;z-index:3}.cta p{position:relative;z-index:3;margin:22px auto 34px;max-width:46ch;color:#d8d2d2}.cta .pill{position:relative;z-index:3;justify-self:center}
+footer{padding:46px 0 30px;border-top:1px solid var(--line);font-size:13px;color:#8f8a8a}
+footer .wrap{width:min(1180px,calc(100% - 44px));margin-inline:auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.rv{opacity:0;transform:translateY(30px);transition:opacity 1s,transform 1s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}}
+
+/* tech hero */
+.ghost{position:absolute;left:50%;top:13%;translate:-50% 0;font:200 clamp(90px,19vw,310px)/1 var(--f);letter-spacing:-.06em;white-space:nowrap;color:transparent;background:linear-gradient(180deg,rgba(215,0,15,.55),rgba(215,0,15,.04) 88%);-webkit-background-clip:text;background-clip:text;z-index:-1;user-select:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.s1{align-items:center}
+.s1 .copy{position:absolute;left:clamp(22px,5vw,80px);bottom:12%;max-width:330px;z-index:3}.s1 .copy p{font-size:14px;color:#cfc9c9;margin-bottom:22px}
+.s1 .stat{position:absolute;right:6%;top:15%;z-index:3;font:300 clamp(30px,3vw,46px)/1 var(--f);letter-spacing:-.02em}.stat small{font:300 12px var(--f);color:var(--mut);margin-left:8px;letter-spacing:0}
+.s1 .chip{position:absolute;right:23%;bottom:9%;z-index:3;display:flex;gap:10px;align-items:center;font-size:14px}
+.s1 .photo{position:absolute;right:clamp(20px,5vw,80px);bottom:8%;width:clamp(150px,17vw,250px);aspect-ratio:3/4;border-radius:6px;overflow:hidden;z-index:3;border:1px solid var(--line);box-shadow:0 30px 80px -20px rgba(215,0,15,.45)}
+.s1 .photo img{width:100%;height:100%;object-fit:cover}
+.s1 .photo:before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;border-left:2px solid var(--red);border-top:2px solid var(--red);z-index:2}
+.s1 .tag{position:absolute;left:clamp(22px,5vw,80px);top:20%;z-index:3}
+.bgimg{display:block;position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center}
+.s1 .bgimg{background-image:url(img/hero-bg.webp)}
+.s1:after{background:radial-gradient(60% 55% at 50% 52%,transparent,rgba(3,3,4,.65)),linear-gradient(0deg,#030304,transparent 20%)!important}
+.s2 .bgimg{background-image:url(img/commerce.webp);background-position:center 70%}
+.s2:after{background:linear-gradient(180deg,#030304 0,rgba(3,3,4,.15) 28%,rgba(3,3,4,.1) 65%,#030304)!important}
+.s3 .bgimg{background-image:url(img/person.webp);background-position:35% center}
+.s3:after{background:linear-gradient(180deg,#030304,transparent 20%,transparent 75%,#030304),linear-gradient(270deg,rgba(3,3,4,.55),transparent 50%)!important}
+.s4 .bgimg{background-image:url(img/cosmos.webp);background-position:center bottom}
+.s4:after{background:radial-gradient(50% 40% at 50% 100%,rgba(215,0,15,.35),transparent 70%)!important}
+.s5 .bgimg{background-image:url(img/arch.webp);background-position:right center;opacity:.8}
+.s5:after{background:linear-gradient(90deg,#030304 18%,rgba(3,3,4,.25) 70%,rgba(3,3,4,.7)),linear-gradient(180deg,#030304,transparent 15%,transparent 85%,#030304)!important}
+.cta .bgimg{background-image:url(img/cta.webp)}
+.cta:after{background:linear-gradient(180deg,#030304,rgba(3,3,4,.1) 45%,rgba(3,3,4,.6))!important}
+.s6{background:#f4f2ef!important;color:#0D131A}.s6 h2{color:#0D131A}.s6 h2 .g{color:rgba(13,19,26,.45)!important}.s6 .mono{color:#6b6f75}.s6 .st{background:#fff;border:1px solid rgba(13,19,26,.12);backdrop-filter:none;box-shadow:0 20px 50px -30px rgba(13,19,26,.35)}.s6 .st h4{color:#0D131A}.s6 .st p{color:#4a4f56}.s6 .st em{color:#8a8e94}.s6 .st:hover{border-color:#D7000F}
+@media(max-width:900px){.s1 .stat,.s1 .chip,.s1 .photo{display:none}.s1 .copy{right:22px;bottom:9%}}
+</style>
+<script type="importmap">{"imports":{"three":"../lib/t166/three.module.min.js","three/addons/":"../lib/t166/addons/"}}</script>
+</head><body>
+<nav><div class="in glass"><a class="logo" href="#"><img src="../brand/bx-mark.png" alt="">BATTLE X</a>
+<div class="ls"><a href="../about.html">About</a><a href="#services">Services</a><a href="#platform">Platform</a><a href="#process">Delivery</a><a href="#contact">Contact</a></div>
+<a class="pill glass" href="#contact">Book a call <b>↗</b></a></div></nav>
+
+<header class="scene s1" data-p="0" data-b="1"><div class="bgimg"></div><div class="ghost">ENGINEER</div><canvas id="gl"></canvas>
+  <div class="x"><div class="hl" style="top:26%"></div><div class="vl" style="left:14%"></div><div class="vl" style="right:30%"></div><div class="hl" style="bottom:24%"></div></div>
+  <div class="tag mono"><span style="color:var(--red)">●</span> &nbsp;Battle X · Web &amp; digital engineering</div>
+  <div class="copy"><h1 style="font:300 clamp(34px,3.4vw,52px)/1.04 var(--f);letter-spacing:-.035em;margin-bottom:18px">Engineered to convert. <em>Built to scale.</em></h1><p>Enterprise-grade websites, commerce, apps and AI — architected for speed, security and measurable revenue.</p><a class="pill glass" href="#services">Start <b>→</b></a></div>
+  <div class="stat">+99.9% <small>uptime target</small></div>
+  <div class="chip"><span class="dot r" style="position:static"></span> Secure by design</div>
+  <div class="photo"><img src="img/panel.webp" alt=""></div>
+</header>
+
+<section class="scene s2" id="platform"><div class="bgimg"></div>
+  <div class="x"><div class="vl" style="left:50%"></div><div class="hl" style="top:44%"></div><span class="dot" style="left:calc(50% - 4px);top:calc(44% - 4px)"></span></div>
+  <div class="t rv"><h2>Commerce engineered for <span class="g">seamless</span> and <span class="g">secure</span> transactions.</h2><p>Headless storefronts, checkout and integrations built for conversion at scale.</p></div>
+  <div class="card glass rv"><img src="img/web.webp" alt=""><div><b>Smart storefront</b><span>Catalogue · checkout · payments</span></div></div>
+  <a class="go pill glass" href="#services">Explore now <b>→</b></a>
+</section>
+
+<section class="scene s3" id="s3"><div class="bgimg"></div>
+  <div class="x"><span class="dot r" style="left:34%;top:30%"></span></div>
+  <div class="t rv"><h2>Smart engineering <span class="g">for modern</span> enterprises.</h2><p>Measured on speed, security and revenue — not adjectives. Every build is scoped against performance budgets before a line of code is written.</p></div>
+  <div class="perf glass rv"><div class="row"><i></i>Performance</div>
+    <svg viewBox="0 0 260 84"><path class="ln" d="M0 70 C30 70 40 20 70 24 S110 66 140 50 S190 6 220 22 S250 30 260 12"/></svg>
+    <big>95+</big><small>Lighthouse target</small></div>
+  <a class="go pill glass" href="#process">View platform <b>→</b></a>
+</section>
+
+<section class="scene s4" id="services"><div class="bgimg"></div>
+  <div class="x"><div class="hl" style="top:30%"></div><div class="vl" style="left:12%"></div><div class="vl" style="right:12%"></div><span class="dot" style="left:calc(12% - 4px);top:calc(30% - 4px)"></span><span class="dot" style="right:calc(12% - 4px);top:calc(30% - 4px)"></span></div>
+  <div class="stmt rv"><div class="mono" style="margin-bottom:20px"><span style="color:var(--red)">●</span> &nbsp;Capabilities</div>
+  <h2>Secure <span class="g">digital systems</span> made simple for modern business.</h2><p>Five disciplines, one engineering team — pick one to look closer.</p></div>
+  <div class="svc rv"><div class="tabs" id="tabs"></div><div class="view glass" id="view"></div></div>
+</section>
+
+<section class="scene s5"><div class="bgimg"></div>
+  <div class="wrap"><div class="mono rv" style="margin-bottom:18px"><span style="color:var(--red)">●</span> &nbsp;Architecture</div><h2 class="rv">Four layers. <em>One stack.</em></h2>
+  <div class="lay rv">
+    <div class="glass"><span class="n">L1</span><p><b>Experience</b><span>React / Next / Flutter · design system · WCAG AA</span></p></div>
+    <div class="glass"><span class="n">L2</span><p><b>API &amp; integration</b><span>REST · GraphQL · ERP / POS / payments · webhooks</span></p></div>
+    <div class="glass"><span class="n">L3</span><p><b>Data &amp; AI</b><span>Attribution · RAG agents · dashboards</span></p></div>
+    <div class="glass"><span class="n">L4</span><p><b>Cloud &amp; security</b><span>IaC · CI/CD · observability · backups &amp; DR</span></p></div>
+  </div>
+  <div class="met rv"><div class="glass"><b>&lt;1<sup>s</sup></b><span>first paint target</span></div><div class="glass"><b>95<sup>+</sup></b><span>Lighthouse target</span></div><div class="glass"><b>99.9<sup>%</sup></b><span>uptime target</span></div><div class="glass"><b>AA</b><span>accessibility</span></div></div>
+  <p class="note rv">Engineering targets we scope against — not client results. Real case-study numbers to follow once cleared.</p></div>
+</section>
+
+<section class="s6" id="process"><div class="wrap">
+  <div class="mono rv" style="margin-bottom:18px"><span style="color:var(--red)">●</span> &nbsp;Delivery</div><h2 class="rv">From brief <span class="g" style="color:rgba(255,255,255,.38)">to production.</span></h2>
+  <div class="steps rv">
+    <div class="st glass"><span class="n">01</span><h4>Discover</h4><p>Systems audit, goals and a scoped technical plan.</p><em>Week 1–2</em></div>
+    <div class="st glass"><span class="n">02</span><h4>Architect</h4><p>Stack, data model, integrations and security design.</p><em>Week 2–4</em></div>
+    <div class="st glass"><span class="n">03</span><h4>Build</h4><p>Sprints with staging and CI/CD from the first commit.</p><em>Week 4–12</em></div>
+    <div class="st glass"><span class="n">04</span><h4>Launch</h4><p>Load, security and a11y testing; zero-downtime cut-over.</p><em>Go-live</em></div>
+    <div class="st glass"><span class="n">05</span><h4>Operate</h4><p>Monitoring, patching, optimisation — ongoing.</p><em>Ongoing</em></div>
+  </div></div></section>
+
+<section class="scene cta" id="contact"><div class="bgimg"></div>
+  <h2 class="rv">Let's engineer <em>your next system.</em></h2><p>Tell us what you're building. A senior engineer replies within one business day.</p>
+  <a class="pill solid" href="mailto:hello@battle-x.com">Book a technical call <b>↗</b></a></section>
+<footer><div class="wrap"><span>© 2026 Battle X · Battle Mind Creative · Kuala Lumpur · Draft concept</span><span>Privacy · Terms</span></div></footer>
+
+<script>
+const S=[
+ {k:'web',t:'Website & E-commerce',d:'Headless and composable builds on a CMS your team controls. Checkout, catalogue and integrations engineered for conversion at scale.',l:['Headless CMS','Shopify / custom','Payments','SEO · AI-search']},
+ {k:'app',t:'App Development',d:'Native-quality iOS, Android and web apps with clean APIs, offline resilience and release pipelines your business can trust.',l:['iOS · Android','Flutter / React','API design','App-store ops']},
+ {k:'host',t:'Hosting & Maintenance',d:'Managed cloud infrastructure with monitoring, patching, backups and incident response — uptime is our problem, not yours.',l:['Managed cloud','24/7 monitoring','Backups · DR','Security patching']},
+ {k:'ai',t:'AI Chatbot',d:'Production AI agents trained on your knowledge base and wired into your CRM, helpdesk and WhatsApp — with guardrails, handover and analytics.',l:['RAG on your data','WhatsApp · web','CRM sync','Guardrails']},
+ {k:'loyalty',t:'Loyalty & Retention',d:'Loyalty engines, CRM journeys and data pipelines that turn one-time buyers into repeat revenue — measured down to the cohort.',l:['Loyalty programmes','CRM automation','Segmentation','Attribution']}];
+const tabs=document.getElementById('tabs'),view=document.getElementById('view');
+S.forEach((s,i)=>{const b=document.createElement('button');b.className='tab'+(i?'':' on');b.textContent=s.t;b.onclick=()=>pick(i);b.onmouseenter=()=>pick(i);tabs.appendChild(b);
+ const p=document.createElement('div');p.className='pane'+(i?'':' on');p.innerHTML=`<div class="im" style="background-image:url(img/${s.k}.webp)"></div><div class="tx"><span class="mono">0${i+1} / 05</span><h3>${s.t}</h3><p>${s.d}</p><ul>${s.l.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`;view.appendChild(p)});
+function pick(i){[...tabs.children].forEach((t,j)=>t.classList.toggle('on',i===j));[...view.children].forEach((p,j)=>p.classList.toggle('on',i===j))}
+let n=0;setInterval(()=>{if(!view.matches(':hover')&&!tabs.matches(':hover')){n=(n+1)%S.length;pick(n)}},5200);
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in','vis');}}),{threshold:.2});
+document.querySelectorAll('.rv,.s3').forEach(el=>io.observe(el));
+</script>
+<script type="module" src="hero.js"></script>
+</body></html>
