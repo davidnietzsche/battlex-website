@@ -2,32 +2,12 @@ import * as THREE from 'three';
 const canvas=document.getElementById('world');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 const CREAM=0xf1e6d3;renderer.setClearColor(CREAM,1);
-const scene=new THREE.Scene();scene.fog=new THREE.Fog(CREAM,10,62);
+const scene=new THREE.Scene();scene.fog=new THREE.Fog(CREAM,16,95);
 const cam=new THREE.PerspectiveCamera(58,1,.1,200);scene.add(cam);
 await document.fonts.load('700 120px Oswald').catch(()=>{});await document.fonts.load('italic 120px "Instrument Serif"').catch(()=>{});
 const TL=new THREE.TextureLoader();
 const load=f=>{const t=TL.load('about/img/'+f);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t};
 const PAINT=['b-portal','b-hall','b-desk','b-reunion','b-rescue','b-guardians','b-door'].map(n=>load(n+'.webp'));
-// ---- painted backdrop (dissolves painting → painting with brush noise; slow push-in per scene)
-const bgMat=new THREE.ShaderMaterial({
-  uniforms:{A:{value:PAINT[0]},B:{value:PAINT[0]},m:{value:0},aspect:{value:1},mouse:{value:new THREE.Vector2()},zA:{value:1.05},zB:{value:1.05},t:{value:0},fog:{value:1}},
-  vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',
-  fragmentShader:`precision highp float;varying vec2 v;uniform sampler2D A,B;uniform float m,aspect,zA,zB,t;uniform vec2 mouse;
-  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
-  float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
-  vec2 cover(vec2 uv,float ia,float z,vec2 off){vec2 c=uv-.5;if(aspect>ia)c.y*=ia/aspect;else c.x*=aspect/ia;return c/z+.5+off;}
-  void main(){
-    float k=fbm(v*vec2(aspect,1.)*3.4+t*.02);
-    float r=clamp((m*1.25-k)*6.,0.,1.);
-    vec3 ca=texture2D(A,cover(v,1.5,zA,mouse*.012)).rgb,cb=texture2D(B,cover(v,1.5,zB,mouse*.012)).rgb;
-    vec3 c=mix(ca,cb,m>=.999?1.:(m<=.001?0.:r));
-    float front=smoothstep(0.,.25,r)*(1.-smoothstep(.25,.6,r))*step(.001,m)*step(m,.999);
-    c+=vec3(1.,.85,.55)*front*.28;
-    float d=length(v-.5);c*=1.-smoothstep(.55,1.,d)*.22;
-    c+=(h(v*900.+t)-.5)*.025;
-    gl_FragColor=vec4(pow(max(c,0.),vec3(1./2.2)),1.);}`,depthTest:false,depthWrite:false});
-const bg=new THREE.Mesh(new THREE.PlaneGeometry(2,2),bgMat);bg.frustumCulled=false;bg.renderOrder=-10;scene.add(bg);
 // ---- paper tube of type (OPPO reference) with a painted portal at its end
 const R=5,LEN=70,END=-62;
 function tunnelTex(){
@@ -51,38 +31,62 @@ function tunnelTex(){
 }
 const tun=new THREE.Mesh(new THREE.CylinderGeometry(R,R,LEN,64,1,true),new THREE.MeshBasicMaterial({map:tunnelTex(),side:THREE.BackSide}));
 tun.rotation.x=Math.PI/2;tun.position.z=-LEN/2+8;scene.add(tun);
+
 // portal: painted disc + ring
-const portalMat=new THREE.MeshBasicMaterial({map:PAINT[0],transparent:true,fog:false});
+const portalMat=new THREE.MeshBasicMaterial({map:load('c-sea.webp'),transparent:true,fog:false});
 const portal=new THREE.Mesh(new THREE.CircleGeometry(4.6,96),portalMat);portal.position.z=END+.2;
 const pu=portal.geometry.attributes.uv,pp=portal.geometry.attributes.position;for(let i=0;i<pu.count;i++){pu.setXY(i,.5+pp.getX(i)/9.2*.7,.5+pp.getY(i)/9.2*.7*1.5)}
 scene.add(portal);
 const ringMat=new THREE.MeshBasicMaterial({color:0xD7000F,transparent:true,fog:false});
 const ring=new THREE.Mesh(new THREE.TorusGeometry(4.7,.09,12,128),ringMat);ring.position.z=END+.25;scene.add(ring);
-function size(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();bgMat.uniforms.aspect.value=w/h}
+
+// ---- the painted world: plates the camera flies through, cut-out figures, drifting 3D cloud banks
+const TLp=new THREE.TextureLoader();
+const ltex=(f)=>{const t=TLp.load('about/img/'+f);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t};
+const CL=['c-cloud1.png','c-cloud2.png','c-cloud3.png','c-cloud5.png'].map(ltex);
+const SC=['c-sea.webp','b-hall.webp','b-desk.webp','b-reunion.webp','b-rescue.webp','b-guardians.webp','b-door.webp'];
+const ZC=SC.map((_,k)=>-80-k*46);                     // camera hold z for each scene
+function sprite(tex,w,aspect,x,y,z,op=1,fog=true){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w/aspect),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:op,depthWrite:false,fog,side:THREE.DoubleSide}));m.position.set(x,y,z);m.userData={bx:x,by:y,bz:z};scene.add(m);return m}
+const plates=SC.map((f,k)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(40,26.7),new THREE.MeshBasicMaterial({map:ltex(f),fog:true,transparent:true}));m.position.set(0,0,ZC[k]-12);m.userData={bx:0,by:0,bz:ZC[k]-12};scene.add(m);return m});
+const drift=[];
+// hero scene cut-outs (figures on rocks, cherubs) in front of the sea plate
+const fig=sprite(ltex('c-figures.png'),9.5,1.59,0,-.6,ZC[0]-7.5,1);drift.push([fig,.0,.04]);
+[['c-cherub0.png',-5.2,3.4,ZC[0]-6,3.2,1.2],['c-cherub1.png',0,5,ZC[0]-8,3.4,1.1],['c-cherub2.png',5.4,3.2,ZC[0]-5.5,3.4,1.15]].forEach(([f,x,y,z,w,a],i)=>{const m=sprite(ltex(f),w,a,x,y,z);drift.push([m,.35+i*.1,.18])});
+// cloud banks around every scene and in the passages between them
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+function bank(z0,z1,n){for(let i=0;i<n;i++){
+  const z=z0+(z1-z0)*rnd(),low=rnd()<.72;const w=7+rnd()*10;const tex=CL[(rnd()*4)|0];
+  const img=tex.image;const asp=1.7;
+  const x=(rnd()-.5)*34,y=low?-5.4-rnd()*2.4+(1-Math.min(1,w/14))*1.2:5.2+rnd()*3;
+  const m=sprite(tex,w,low?1.7:2.2,x,y,z,.96);if(!low)m.scale.y=-1;drift.push([m,(rnd()-.5)*.5,.0])}}
+ZC.forEach((zc,k)=>{bank(zc-8,zc+5,16);if(k<ZC.length-1)bank(zc-44,zc-10,22)});
+bank(END-6,ZC[0]+10,16);
+function size(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
 size();addEventListener('resize',size);
-// ---- scroll model
+// ---- scroll model: hero zoom through the tube, then one continuous dolly through the scenes
 const hero=document.querySelector('.hero'),secs=[...document.querySelectorAll('[data-p]:not(.hero)')];
 const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 const ov=[...document.querySelectorAll('.ov')];
 function heroP(){const L=hero.offsetHeight-innerHeight;return Math.min(1,Math.max(0,scrollY/L))}
-function sect(){
+function sectZ(){
   const y=scrollY+innerHeight*.5;let i=0;secs.forEach((s,k)=>{if(s.offsetTop<=y)i=k});
-  const s=secs[i],nx=secs[i+1]||s,frac=Math.min(1,Math.max(0,(y-s.offsetTop)/s.offsetHeight));
-  return {fa:frac,a:+s.dataset.p,b:+nx.dataset.p,t:ss(.74,1,frac),same:s===nx}}
+  const s=secs[i],frac=Math.min(1,Math.max(0,(y-s.offsetTop)/s.offsetHeight));
+  const a=+s.dataset.p,b=Math.min(ZC.length-1,a+1);return ZC[a]+(ZC[b]-ZC[a])*(a===b?0:ss(.5,1,frac))}
 let mx=0,my=0,smx=0,smy=0;addEventListener('pointermove',e=>{mx=e.clientX/innerWidth*2-1;my=e.clientY/innerHeight*2-1},{passive:true});
 const qp=new URLSearchParams(location.search).get('y');if(qp)setTimeout(()=>scrollTo(0,+qp),50);
 const t0=performance.now();
 function frame(now){requestAnimationFrame(frame);
   const t=(now-t0)/1000;smx+=(mx-smx)*.05;smy+=(my-smy)*.05;
   const hp=heroP(),e=ease(hp);
-  cam.position.set(smx*.35,-smy*.22,10-e*72);cam.rotation.z=Math.sin(hp*3.1)*.05;cam.lookAt(smx*.6,-smy*.4,cam.position.z-12);
+  let z;
+  if(hp<1)z=10-e*(10-ZC[0]);else z=sectZ();
+  cam.position.set(smx*.9,-smy*.5+(hp<1?0:.0),z);cam.rotation.z=hp<1?Math.sin(hp*3.1)*.05:smx*-.015;cam.lookAt(smx*1.2,-smy*.7,z-12);
   tun.rotation.y=hp*2.4;
   const open=1-ss(.9,1,hp);portalMat.opacity=open;ringMat.opacity=open;portal.visible=ring.visible=open>.01;
-  const u=bgMat.uniforms,st=sect();
-  u.A.value=PAINT[st.same?st.a:st.a];u.B.value=PAINT[st.b];u.m.value=st.same?0:st.t;
-  u.zA.value=1.04+(hp<1?0:st.fa*.12)+(hp>=1?0:ss(.8,1,hp)*.0);u.zB.value=1.04;u.t.value=t;u.mouse.value.set(smx,-smy);
-  if(hp<1){u.A.value=PAINT[0];u.B.value=PAINT[0];u.m.value=0;u.zA.value=u.zB.value=1.04+ss(.7,1,hp)*.04}
+  tun.visible=hp<1;
+  drift.forEach(([m,vx,vy],i)=>{m.position.x=m.userData.bx+Math.sin(t*.25+i)*vx*3;m.position.y=m.userData.by+Math.sin(t*.4+i*1.7)*vy});
+  plates.forEach(p=>{p.position.x=p.userData.bx-smx*.5;p.position.y=p.userData.by+smy*.3;const d=Math.abs(p.position.z-z);p.material.opacity=1-ss(13,28,d)});
   ov.forEach(o=>{const a=+o.dataset.a,b=+o.dataset.b,f=.05;const v=Math.max(0,Math.min(1,Math.min(a<=0?1:(hp-a)/f,(b-hp)/f)));o.style.opacity=v});
   renderer.render(scene,cam);window.__ready=true}
 requestAnimationFrame(frame);
